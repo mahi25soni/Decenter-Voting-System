@@ -1,0 +1,13 @@
+<%- include('use/header'); -%>
+
+<form action="/voter" method="post">
+    <label for="voterid">EPIC Number </label>
+    <input type="number" name="voterid" id="voterid"> <br>
+    <label for="mobileno">Mobile Number </label>
+    <input type="number" name="mobileno" id="mobileno"> <br>
+    <label for="yoursconst">Constituency </label>
+    <input type="text" name="yoursconst" id="yoursconst">
+    <button type="submit"> Submit </button>
+</form>
+
+<%- include('use/footer'); -%>
