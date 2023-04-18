@@ -8,7 +8,7 @@ router.get("/voter", voterPage)
 router.post("/voter", addVoter)
 
 router.get("/candidate", candidatePage)
-router.post("/candiate", addCandidate)
+router.post("/candidate", addCandidate)
 
 router.get("/election", votePage)
 router.post("/added", finalStep)

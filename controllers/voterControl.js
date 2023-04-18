@@ -3,6 +3,7 @@ const ethers = require("ethers");
 const crypto = require("crypto");
 const ejs = require("ejs");
 const fs = require("fs");
+const { PassThrough } = require("stream");
 // const { abi, address } = require("../public/js/addressabi")
 
 
@@ -24,51 +25,62 @@ const addVoter = (req, res) =>{
   
     var wallet = new ethers.Wallet("0x"+privateKey);
   
-    data_update({
+    data_update_voter({
       epic,
       constituency,
       public_key: wallet.address,
     });
   
-    res.send(req.body);
+    res.redirect("/voter")
   };
   
-const data_update = (data) => {
+const data_update_voter = (data) => {
     const { constituency, epic, public_key } = data;
   
-    const read_data_json = fs.readFileSync("data.json", "utf-8");
+    let read_data_json = fs.readFileSync("voter.json", "utf-8");
   
-    const json_convert = read_data_json ? JSON.parse(read_data_json) : {};
-  
+    let json_convert;
+    if (read_data_json && read_data_json.trim().length > 0) {
+      json_convert = JSON.parse(read_data_json);
+    } else {
+      json_convert = {};
+    }
+
     const keys_length = Object.keys(json_convert);
-  
-    if (keys_length.length) {
-      const find_constituency = json_convert[constituency];
-  
-      if (find_constituency) {
-        Object.assign(find_constituency, {
+
+    const find_constituency = json_convert[constituency];
+    console.log("find_constituency", find_constituency)
+
+
+    if (find_constituency) {
+      Object.assign(find_constituency, {
+        [epic]: public_key
+      })
+
+      json_convert[constituency] = find_constituency;
+
+
+      fs.writeFileSync('voter.json', JSON.stringify(json_convert), 'utf-8');
+    } else {
+      Object.assign(json_convert, {
+        [constituency]: {
           [epic]: public_key
-        })
-  
-        json_convert[constituency] = find_constituency;
-  
-  
-        fs.writeFileSync('data.json', JSON.stringify(json_convert), 'utf-8');
-      } else {
-        Object.assign(json_convert, {
-          [constituency]: {
-            [epic]: public_key
-          }
-        })
-  
-        fs.writeFileSync('data.json', JSON.stringify(json_convert), 'utf-8');
-      }
+        }
+      })
+
+      fs.writeFileSync('voter.json', JSON.stringify(json_convert), 'utf-8');
     }
   
     return {
       json_convert,
       keys_length: keys_length.length,
     };
+
+    // The json file in candidate.json can be saved as "data" and can be
+    // excessed using
+    // for key in data:
+    // print(key, ":", data[key])
+
   };
   
 
@@ -77,7 +89,48 @@ const candidatePage = (req, res) =>{
 }
 
 const addCandidate = (req, res) => {
+  const candidatename = req.body.candidatename 
+  const partyname = req.body.hisparty
+  const consti = req.body.constituency
 
+  let read_data_json = fs.readFileSync("candidate.json", "utf-8");
+
+  let json_convert;
+  if (read_data_json && read_data_json.trim().length > 0) {
+    json_convert = JSON.parse(read_data_json);
+  } else {
+    json_convert = {};
+  }
+  // const keys_length = Object.keys(json_convert);
+
+  const keys_length = Object.keys(json_convert);
+
+  const find_constituency = json_convert[consti];
+  console.log("find_constituency", find_constituency)
+
+
+  if (find_constituency) {
+    Object.assign(find_constituency, {
+      [candidatename]: partyname
+    })
+
+    json_convert[consti] = find_constituency;
+
+
+    fs.writeFileSync('candidate.json', JSON.stringify(json_convert), 'utf-8');
+  } else {
+    Object.assign(json_convert, {
+      [consti]: {
+        [candidatename]: partyname
+      }
+    })
+
+    fs.writeFileSync('candidate.json', JSON.stringify(json_convert), 'utf-8');
+  }
+
+  res.redirect("/candidate")
+
+  
 }
 
 const votePage = (req, res) => {
